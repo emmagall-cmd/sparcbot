@@ -20,7 +20,7 @@ sparcbot_driver:
 
     wheel_radius_m: 0.050
     counts_per_rev: 500.0       # encoder counts per gearbox output revolution
-    velocity_cutoff_hz: 8.0     # first-order low-pass on wheel velocity (<= 0 disables)
+    velocity_cutoff_hz: 4.5     # Lower cutoff frequency to filter out discrete count quantization hash
 
     # Wiring. Signs make "positive command" and "positive
     # encoder motion" both mean robot-forward wheel motion.
@@ -33,7 +33,7 @@ sparcbot_driver:
       pwm_chip: 0
       pwm_channel: 0
       pwm_frequency_hz: 20000
-      motor_sign: 1
+      motor_sign: -1
       encoder_sign: -1
 
     right_motor:
@@ -45,7 +45,7 @@ sparcbot_driver:
       pwm_chip: 0
       pwm_channel: 1
       pwm_frequency_hz: 20000
-      motor_sign: 1
+      motor_sign: -1
       encoder_sign: 1
 
 # -----------------------------------------------------------------------------
@@ -65,31 +65,34 @@ wheel_controller:
     log_file: ''
 
     left:
-      kp: 0.0
-      ki: 0.0
+      # Reduced Kp to stop amplifying discrete encoder tick jumps into the PWM command
+      kp: 2.8
+      # Modest Ki to bring steady-state error to zero smoothly without hunting
+      ki: 4.0
+      # Zeroed Kd to remove high-frequency derivative chatter
       kd: 0.0
       feedforward:
-        forward_static: 0.0
-        forward_velocity_gain: 0.0
-        reverse_static: 0.0
-        reverse_velocity_gain: 0.0
-        forward_breakaway: 0.0
-        reverse_breakaway: 0.0
-        stopped_velocity_threshold: 0.025
+        forward_static: 0.10            # Overcomes motor gearbox stiction
+        forward_velocity_gain: 0.85     # Duty cycle per m/s (1.0 duty / ~0.8 m/s top speed)
+        reverse_static: 0.10
+        reverse_velocity_gain: 0.85
+        forward_breakaway: 0.12
+        reverse_breakaway: 0.12
+        stopped_velocity_threshold: 0.015
         max_command: 1.0
         zero_velocity_threshold: 0.0005
 
     right:
-      kp: 0.0
-      ki: 0.0
+      kp: 2.0
+      ki: 3.0
       kd: 0.0
       feedforward:
-        forward_static: 0.0
-        forward_velocity_gain: 0.0
-        reverse_static: 0.0
-        reverse_velocity_gain: 0.0
-        forward_breakaway: 0.0
-        reverse_breakaway: 0.0
-        stopped_velocity_threshold: 0.025
+        forward_static: 0.06
+        forward_velocity_gain: 1.05
+        reverse_static: 0.06
+        reverse_velocity_gain: 1.05
+        forward_breakaway: 0.08
+        reverse_breakaway: 0.08
+        stopped_velocity_threshold: 0.008
         max_command: 1.0
         zero_velocity_threshold: 0.0005
